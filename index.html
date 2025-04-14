@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="uk">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Онлайн Плеєр — Українська Музика</title>
+  <link rel="manifest" href="manifest.json">
+  <style>
+    body {
+      font-family: Arial, sans-serif;
+      background: #f0f0f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      height: 100vh;
+      margin: 0;
+    }
+    .player {
+      background: white;
+      padding: 2rem;
+      border-radius: 20px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
+      width: 90%;
+      max-width: 400px;
+    }
+    .playlist-item {
+      cursor: pointer;
+      margin: 0.5rem 0;
+      padding: 0.5rem;
+      border-radius: 10px;
+    }
+    .playlist-item.active {
+      background: #cce5ff;
+    }
+    button {
+      margin: 0.5rem;
+      padding: 0.5rem 1rem;
+      border: none;
+      border-radius: 10px;
+      background: #007bff;
+      color: white;
+      cursor: pointer;
+    }
+  </style>
+</head>
+<body>
+  <div class="player">
+    <h2>Українська Музика</h2>
+    <audio id="audio" controls preload="auto" style="width: 100%">
+      <source src="https://stream.hitfm.ua/HitFM_Ukr" type="audio/mpeg">
+      Ваш браузер не підтримує аудіо.
+    </audio>
+    <div style="margin-top: 1rem;">
+      <strong>Плейлист:</strong>
+      <div id="playlist"></div>
+    </div>
+  </div>
+
+  <script>
+    const playlist = [
+      { title: "Hit FM Українське", url: "https://stream.hitfm.ua/HitFM_Ukr" },
+      { title: "Radio ROKS Українське", url: "https://online-radioroks.tavrmedia.ua/RadioROKS_Ukr" },
+      { title: "Наше Радіо", url: "https://nashe1.hostingradio.ru/nashe-256.mp3" }
+    ];
+
+    const audio = document.getElementById("audio");
+    const playlistContainer = document.getElementById("playlist");
+
+    function renderPlaylist() {
+      playlist.forEach((track, index) => {
+        const div = document.createElement("div");
+        div.textContent = track.title;
+        div.className = "playlist-item";
+        div.addEventListener("click", () => {
+          document.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('active'));
+          div.classList.add('active');
+          audio.src = track.url;
+          audio.play();
+        });
+        if (index === 0) div.classList.add('active');
+        playlistContainer.appendChild(div);
+      });
+    }
+
+    renderPlaylist();
+  </script>
+
+  <script>
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.register('/sw.js');
+    }
+  </script>
+</body>
+</html>
