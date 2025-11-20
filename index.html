@@ -3,92 +3,583 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Онлайн Плеєр  Музика</title>
-  <link rel="manifest" href="manifest.json">
+  <title>Український онлайн плеєр радіо</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
   <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+    
     body {
-      font-family: Arial, sans-serif;
-      background: #f0f0f0;
+      font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
       display: flex;
       flex-direction: column;
       align-items: center;
       justify-content: center;
-      height: 100vh;
-      margin: 0;
+      min-height: 100vh;
+      padding: 1rem;
+      color: #333;
     }
+    
+    .container {
+      width: 100%;
+      max-width: 800px;
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
+    header {
+      text-align: center;
+      color: white;
+      padding: 1rem;
+    }
+    
+    header h1 {
+      font-size: 2.2rem;
+      margin-bottom: 0.5rem;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+    
+    header p {
+      font-size: 1.1rem;
+      opacity: 0.9;
+    }
+    
+    .player-container {
+      display: flex;
+      flex-direction: column;
+      gap: 1.5rem;
+    }
+    
     .player {
       background: white;
-      padding: 2rem;
+      padding: 1.5rem;
       border-radius: 20px;
-      box-shadow: 0 4px 10px rgba(0,0,0,0.1);
-      width: 90%;
-      max-width: 400px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
     }
+    
+    .station-info {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-bottom: 0.5rem;
+    }
+    
+    .station-icon {
+      width: 60px;
+      height: 60px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #6a11cb 0%, #2575fc 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: white;
+      font-size: 1.5rem;
+    }
+    
+    .station-details {
+      flex: 1;
+    }
+    
+    .station-name {
+      font-size: 1.4rem;
+      font-weight: bold;
+      color: #2c3e50;
+    }
+    
+    .station-country {
+      font-size: 0.9rem;
+      color: #7f8c8d;
+    }
+    
+    .audio-controls {
+      display: flex;
+      align-items: center;
+      gap: 1rem;
+      margin-top: 0.5rem;
+    }
+    
+    .audio-controls button {
+      background: #3498db;
+      color: white;
+      border: none;
+      border-radius: 50%;
+      width: 50px;
+      height: 50px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      cursor: pointer;
+      transition: all 0.3s;
+      box-shadow: 0 4px 8px rgba(0,0,0,0.1);
+    }
+    
+    .audio-controls button:hover {
+      background: #2980b9;
+      transform: scale(1.05);
+    }
+    
+    .audio-controls button:active {
+      transform: scale(0.98);
+    }
+    
+    .volume-control {
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+      flex: 1;
+    }
+    
+    .volume-control input {
+      flex: 1;
+    }
+    
+    .playlist-section {
+      background: white;
+      padding: 1.5rem;
+      border-radius: 20px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+    }
+    
+    .playlist-section h3 {
+      margin-bottom: 1rem;
+      color: #2c3e50;
+      font-size: 1.3rem;
+      display: flex;
+      align-items: center;
+      gap: 0.5rem;
+    }
+    
+    .playlist {
+      max-height: 400px;
+      overflow-y: auto;
+      padding-right: 0.5rem;
+    }
+    
     .playlist-item {
       cursor: pointer;
       margin: 0.5rem 0;
-      padding: 0.5rem;
-      border-radius: 10px;
+      padding: 0.8rem 1rem;
+      border-radius: 12px;
+      transition: all 0.3s;
+      display: flex;
+      align-items: center;
+      gap: 0.8rem;
+      border: 1px solid #e0e0e0;
     }
+    
+    .playlist-item:hover {
+      background: #f8f9fa;
+      transform: translateX(5px);
+    }
+    
     .playlist-item.active {
-      background: #cce5ff;
+      background: #e3f2fd;
+      border-color: #3498db;
+      box-shadow: 0 4px 8px rgba(52, 152, 219, 0.2);
     }
-    button {
-      margin: 0.5rem;
+    
+    .station-flag {
+      width: 24px;
+      height: 16px;
+      border-radius: 2px;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+    }
+    
+    .station-title {
+      flex: 1;
+      font-weight: 500;
+    }
+    
+    .station-playing {
+      color: #3498db;
+      font-size: 0.8rem;
+      display: flex;
+      align-items: center;
+      gap: 0.3rem;
+    }
+    
+    .tabs {
+      display: flex;
+      gap: 0.5rem;
+      margin-bottom: 1rem;
+    }
+    
+    .tab {
       padding: 0.5rem 1rem;
-      border: none;
-      border-radius: 10px;
-      background: #007bff;
-      color: white;
+      border-radius: 20px;
+      background: #f1f2f6;
       cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .tab.active {
+      background: #3498db;
+      color: white;
+    }
+    
+    footer {
+      text-align: center;
+      color: white;
+      padding: 1rem;
+      font-size: 0.9rem;
+      opacity: 0.8;
+    }
+    
+    /* Стилі для скролбару */
+    .playlist::-webkit-scrollbar {
+      width: 8px;
+    }
+    
+    .playlist::-webkit-scrollbar-track {
+      background: #f1f1f1;
+      border-radius: 10px;
+    }
+    
+    .playlist::-webkit-scrollbar-thumb {
+      background: #c1c1c1;
+      border-radius: 10px;
+    }
+    
+    .playlist::-webkit-scrollbar-thumb:hover {
+      background: #a8a8a8;
+    }
+    
+    /* Адаптивність */
+    @media (max-width: 600px) {
+      .station-info {
+        flex-direction: column;
+        text-align: center;
+      }
+      
+      .audio-controls {
+        flex-direction: column;
+        gap: 0.8rem;
+      }
+      
+      .volume-control {
+        width: 100%;
+      }
     }
   </style>
 </head>
 <body>
-  <div class="player">
-    <h2>Музика</h2>
-    <audio id="audio" controls preload="auto" style="width: 100%">
-      <source src="https://stream.hitfm.ua/HitFM_Ukr" type="audio/mpeg">
-      Ваш браузер не підтримує аудіо.
-    </audio>
-    <div style="margin-top: 1rem;">
-      <strong>Плейлист:</strong>
-      <div id="playlist"></div>
+  <div class="container">
+    <header>
+      <h1><i class="fas fa-radio"></i> Український радіо плеєр</h1>
+      <p>Слухайте найкращі українські та європейські радіостанції онлайн</p>
+    </header>
+    
+    <div class="player-container">
+      <div class="player">
+        <div class="station-info">
+          <div class="station-icon">
+            <i class="fas fa-music"></i>
+          </div>
+          <div class="station-details">
+            <div class="station-name">Оберіть радіостанцію</div>
+            <div class="station-country">Натисніть на станцію в плейлисті</div>
+          </div>
+        </div>
+        
+        <audio id="audio" preload="none"></audio>
+        
+        <div class="audio-controls">
+          <button id="playBtn">
+            <i class="fas fa-play"></i>
+          </button>
+          <button id="pauseBtn">
+            <i class="fas fa-pause"></i>
+          </button>
+          <button id="stopBtn">
+            <i class="fas fa-stop"></i>
+          </button>
+          <div class="volume-control">
+            <i class="fas fa-volume-down"></i>
+            <input type="range" id="volumeSlider" min="0" max="1" step="0.01" value="0.7">
+            <i class="fas fa-volume-up"></i>
+          </div>
+        </div>
+      </div>
+      
+      <div class="playlist-section">
+        <h3><i class="fas fa-list"></i> Радіостанції</h3>
+        
+        <div class="tabs">
+          <div class="tab active" data-tab="ukrainian">Українські</div>
+          <div class="tab" data-tab="european">Європейські</div>
+        </div>
+        
+        <div class="playlist" id="playlist"></div>
+      </div>
     </div>
+    
+    <footer>
+      <p>© 2023 Український онлайн радіо плеєр | Зроблено з ❤️ для України</p>
+    </footer>
   </div>
 
   <script>
-    const playlist = [
-      { title: "Hit FM Українське", url: "https://stream.hitfm.ua/HitFM_Ukr" },
-      { title: "Radio ROKS Українське", url: "https://online-radioroks.tavrmedia.ua/RadioROKS_Ukr" },
-    ];
+    // Список радіостанцій
+    const stations = {
+      ukrainian: [
+        { 
+          title: "Українське Радіо", 
+          url: "https://radio.nrcu.gov.ua:8443/ur2-mp3", 
+          country: "ua",
+          description: "Національна радіокомпанія України"
+        },
+        { 
+          title: "Радіо Промінь", 
+          url: "https://radio.nrcu.gov.ua:8443/ur1-mp3", 
+          country: "ua",
+          description: "Культурно-освітня програма"
+        },
+        { 
+          title: "Радіо Культура", 
+          url: "https://radio.nrcu.gov.ua:8443/ur3-mp3", 
+          country: "ua",
+          description: "Культура та мистецтво"
+        },
+        { 
+          title: "Radio ROKS Україна", 
+          url: "https://online-radioroks.tavrmedia.ua/RadioROKS_Ukr", 
+          country: "ua",
+          description: "Український рок та альтернатива"
+        },
+        { 
+          title: "Хіт FM Україна", 
+          url: "https://stream.hitfm.ua/HitFM_HD", 
+          country: "ua",
+          description: "Сучасні хіти"
+        },
+        { 
+          title: "Львівська Хвиля", 
+          url: "https://lviv.lw.ua/radio/8000/radio2.mp3", 
+          country: "ua",
+          description: "Львівське обласне радіо"
+        },
+        { 
+          title: "Наше Радіо", 
+          url: "https://nrcu.cdnvideo.ru/nrcu/playlist.m3u8", 
+          country: "ua",
+          description: "Патріотичне радіо України"
+        },
+        { 
+          title: "Радіо БАЙРАКТАР", 
+          url: "https://radio.bayraktar.ua/radio/8000/radio.mp3", 
+          country: "ua",
+          description: "Музика для перемоги"
+        },
+        { 
+          title: "KISS FM Україна", 
+          url: "https://kissfm.radiotrack.org/ukrainian-128", 
+          country: "ua",
+          description: "Сучасні хіти"
+        },
+        { 
+          title: "Радіо Релакс", 
+          url: "https://radio.relax.ua/radio/8000/radio.mp3", 
+          country: "ua",
+          description: "Розслабляюча музика"
+        }
+      ],
+      european: [
+        { 
+          title: "BBC Radio 1", 
+          url: "https://stream.live.vc.bbcmedia.co.uk/bbc_radio_one", 
+          country: "gb",
+          description: "Британський хіт-парад"
+        },
+        { 
+          title: "Europe 1", 
+          url: "https://europe1.ice.infomaniak.ch/europe1-128.mp3", 
+          country: "fr",
+          description: "Французька інформаційна станція"
+        },
+        { 
+          title: "Radio France Internationale", 
+          url: "https://rfienespagnol.ice.infomaniak.ch/rfienespagnol-128.mp3", 
+          country: "fr",
+          description: "Міжнародне французьке радіо"
+        },
+        { 
+          title: "Deutschlandfunk", 
+          url: "https://st01.sslstream.dlf.de/dlf/01/128/mp3/stream.mp3", 
+          country: "de",
+          description: "Німецька інформаційна станція"
+        },
+        { 
+          title: "Rai Radio 1", 
+          url: "https://icestreaming.rai.it/1.mp3", 
+          country: "it",
+          description: "Італійська радіостанція"
+        },
+        { 
+          title: "Radio Nacional de España", 
+          url: "https://crtve-ice-edge-2001-fra-eco-cdn.cast.addradio.de/crtve/rne/1/mp3/128/stream.mp3", 
+          country: "es",
+          description: "Національне радіо Іспанії"
+        },
+        { 
+          title: "Polskie Radio", 
+          url: "https://stream3.polskieradio.pl:8904/;", 
+          country: "pl",
+          description: "Польське національне радіо"
+        },
+        { 
+          title: "Radio Prague International", 
+          url: "https://live.radio.cz:8000/cro1.mp3", 
+          country: "cz",
+          description: "Чеське міжнародне радіо"
+        },
+        { 
+          title: "Sveriges Radio P1", 
+          url: "https://sverigesradio.se/topsy/direkt/132-hi-aac.pls", 
+          country: "se",
+          description: "Шведське національне радіо"
+        },
+        { 
+          title: "NRK P1", 
+          url: "https://nrk-p1-osl.akamaized.net/0/nrk_p1_osl_mp3_h", 
+          country: "no",
+          description: "Норвезьке національне радіо"
+        }
+      ]
+    };
 
     const audio = document.getElementById("audio");
     const playlistContainer = document.getElementById("playlist");
+    const playBtn = document.getElementById("playBtn");
+    const pauseBtn = document.getElementById("pauseBtn");
+    const stopBtn = document.getElementById("stopBtn");
+    const volumeSlider = document.getElementById("volumeSlider");
+    const tabs = document.querySelectorAll(".tab");
+    const stationName = document.querySelector(".station-name");
+    const stationCountry = document.querySelector(".station-country");
+    
+    let currentStation = null;
+    let currentTab = "ukrainian";
 
+    // Встановлення гучності за замовчуванням
+    audio.volume = volumeSlider.value;
+
+    // Функція для відображення плейлиста
     function renderPlaylist() {
-      playlist.forEach((track, index) => {
+      playlistContainer.innerHTML = "";
+      
+      stations[currentTab].forEach((station, index) => {
         const div = document.createElement("div");
-        div.textContent = track.title;
         div.className = "playlist-item";
+        
+        // Додаємо прапор країни
+        const flag = document.createElement("img");
+        flag.className = "station-flag";
+        flag.src = `https://flagcdn.com/24x18/${station.country}.png`;
+        flag.alt = station.country;
+        
+        const title = document.createElement("div");
+        title.className = "station-title";
+        title.textContent = station.title;
+        
+        const playing = document.createElement("div");
+        playing.className = "station-playing";
+        
+        div.appendChild(flag);
+        div.appendChild(title);
+        div.appendChild(playing);
+        
         div.addEventListener("click", () => {
-          document.querySelectorAll('.playlist-item').forEach(el => el.classList.remove('active'));
+          // Знімаємо активний клас з усіх елементів
+          document.querySelectorAll('.playlist-item').forEach(el => {
+            el.classList.remove('active');
+            el.querySelector('.station-playing').innerHTML = '';
+          });
+          
+          // Додаємо активний клас до поточного елемента
           div.classList.add('active');
-          audio.src = track.url;
-          audio.play();
+          playing.innerHTML = '<i class="fas fa-volume-up"></i> Грає зараз';
+          
+          // Оновлюємо інформацію про станцію
+          stationName.textContent = station.title;
+          stationCountry.textContent = station.description;
+          
+          // Змінюємо джерело аудіо
+          audio.src = station.url;
+          currentStation = station;
+          
+          // Запускаємо відтворення
+          audio.play().catch(error => {
+            console.error("Помилка відтворення:", error);
+            playing.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Помилка';
+          });
         });
-        if (index === 0) div.classList.add('active');
+        
+        // Активуємо перший елемент при завантаженні
+        if (index === 0 && currentTab === "ukrainian") {
+          div.classList.add('active');
+          playing.innerHTML = '<i class="fas fa-volume-up"></i> Грає зараз';
+          stationName.textContent = station.title;
+          stationCountry.textContent = station.description;
+          audio.src = station.url;
+          currentStation = station;
+        }
+        
         playlistContainer.appendChild(div);
       });
     }
 
+    // Обробники подій для кнопок
+    playBtn.addEventListener('click', () => {
+      if (currentStation) {
+        audio.play().catch(error => {
+          console.error("Помилка відтворення:", error);
+        });
+      } else {
+        alert("Будь ласка, оберіть радіостанцію зі списку");
+      }
+    });
+    
+    pauseBtn.addEventListener('click', () => {
+      audio.pause();
+    });
+    
+    stopBtn.addEventListener('click', () => {
+      audio.pause();
+      audio.currentTime = 0;
+    });
+    
+    volumeSlider.addEventListener('input', () => {
+      audio.volume = volumeSlider.value;
+    });
+    
+    // Обробники для табів
+    tabs.forEach(tab => {
+      tab.addEventListener('click', () => {
+        tabs.forEach(t => t.classList.remove('active'));
+        tab.classList.add('active');
+        currentTab = tab.dataset.tab;
+        renderPlaylist();
+      });
+    });
+    
+    // Обробка помилок відтворення
+    audio.addEventListener('error', function(e) {
+      console.error('Помилка завантаження аудіо:', e);
+      document.querySelectorAll('.station-playing').forEach(el => {
+        el.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Помилка завантаження';
+      });
+    });
+    
+    // Ініціалізація
     renderPlaylist();
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/sw.js');
-    }
   </script>
 </body>
 </html>
