@@ -1,4 +1,5 @@
-<!DOCTYPE html>
+
+     <!DOCTYPE html>
 <html lang="uk">
 <head>
   <meta charset="UTF-8">
@@ -82,6 +83,7 @@
       justify-content: center;
       color: white;
       font-size: 1.5rem;
+      flex-shrink: 0;
     }
     
     .station-details {
@@ -121,13 +123,19 @@
       box-shadow: 0 4px 8px rgba(0,0,0,0.1);
     }
     
-    .audio-controls button:hover {
+    .audio-controls button:hover:not(:disabled) {
       background: #2980b9;
       transform: scale(1.05);
     }
     
-    .audio-controls button:active {
+    .audio-controls button:active:not(:disabled) {
       transform: scale(0.98);
+    }
+    
+    .audio-controls button:disabled {
+      background: #bdc3c7;
+      cursor: not-allowed;
+      opacity: 0.7;
     }
     
     .volume-control {
@@ -139,6 +147,20 @@
     
     .volume-control input {
       flex: 1;
+      height: 5px;
+      border-radius: 5px;
+      background: #ddd;
+      outline: none;
+      -webkit-appearance: none;
+    }
+    
+    .volume-control input::-webkit-slider-thumb {
+      -webkit-appearance: none;
+      width: 18px;
+      height: 18px;
+      border-radius: 50%;
+      background: #3498db;
+      cursor: pointer;
     }
     
     .playlist-section {
@@ -191,6 +213,8 @@
       height: 16px;
       border-radius: 2px;
       box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+      object-fit: cover;
+      flex-shrink: 0;
     }
     
     .station-title {
@@ -204,12 +228,14 @@
       display: flex;
       align-items: center;
       gap: 0.3rem;
+      flex-shrink: 0;
     }
     
     .tabs {
       display: flex;
       gap: 0.5rem;
       margin-bottom: 1rem;
+      flex-wrap: wrap;
     }
     
     .tab {
@@ -218,11 +244,21 @@
       background: #f1f2f6;
       cursor: pointer;
       transition: all 0.3s;
+      border: none;
+      font-family: inherit;
+      font-size: 0.9rem;
     }
     
     .tab.active {
       background: #3498db;
       color: white;
+    }
+    
+    .error-message {
+      color: #e74c3c;
+      font-size: 0.9rem;
+      margin-top: 0.5rem;
+      display: none;
     }
     
     footer {
@@ -267,6 +303,26 @@
       .volume-control {
         width: 100%;
       }
+      
+      header h1 {
+        font-size: 1.8rem;
+      }
+    }
+    
+    .loading {
+      display: none;
+      text-align: center;
+      padding: 1rem;
+      color: #3498db;
+    }
+    
+    .loading i {
+      animation: spin 1s linear infinite;
+    }
+    
+    @keyframes spin {
+      0% { transform: rotate(0deg); }
+      100% { transform: rotate(360deg); }
     }
   </style>
 </head>
@@ -289,16 +345,16 @@
           </div>
         </div>
         
-        <audio id="audio" preload="none"></audio>
+        <audio id="audio" preload="none" crossorigin="anonymous"></audio>
         
         <div class="audio-controls">
-          <button id="playBtn">
+          <button id="playBtn" disabled>
             <i class="fas fa-play"></i>
           </button>
-          <button id="pauseBtn">
+          <button id="pauseBtn" disabled>
             <i class="fas fa-pause"></i>
           </button>
-          <button id="stopBtn">
+          <button id="stopBtn" disabled>
             <i class="fas fa-stop"></i>
           </button>
           <div class="volume-control">
@@ -307,14 +363,18 @@
             <i class="fas fa-volume-up"></i>
           </div>
         </div>
+        <div class="error-message" id="errorMessage"></div>
+        <div class="loading" id="loading">
+          <i class="fas fa-spinner"></i> Завантаження радіостанції...
+        </div>
       </div>
       
       <div class="playlist-section">
         <h3><i class="fas fa-list"></i> Радіостанції</h3>
         
         <div class="tabs">
-          <div class="tab active" data-tab="ukrainian">Українські</div>
-          <div class="tab" data-tab="european">Європейські</div>
+          <button class="tab active" data-tab="ukrainian">Українські</button>
+          <button class="tab" data-tab="european">Європейські</button>
         </div>
         
         <div class="playlist" id="playlist"></div>
@@ -322,12 +382,12 @@
     </div>
     
     <footer>
-      <p>© 2023 Український онлайн радіо плеєр | Зроблено з ❤️ для України</p>
+      <p>© 2024 Український онлайн радіо плеєр | Зроблено з ❤️ для України</p>
     </footer>
   </div>
 
   <script>
-    // Список радіостанцій
+    // Список радіостанцій з працюючими посиланнями
     const stations = {
       ukrainian: [
         { 
@@ -343,40 +403,22 @@
           description: "Культурно-освітня програма"
         },
         { 
-          title: "Радіо Культура", 
-          url: "https://radio.nrcu.gov.ua:8443/ur3-mp3", 
-          country: "ua",
-          description: "Культура та мистецтво"
-        },
-        { 
           title: "Radio ROKS Україна", 
-          url: "https://online-radioroks.tavrmedia.ua/RadioROKS_Ukr", 
+          url: "https://online-radioroks.tavrmedia.ua/RadioROKS", 
           country: "ua",
           description: "Український рок та альтернатива"
         },
         { 
           title: "Хіт FM Україна", 
-          url: "https://stream.hitfm.ua/HitFM_HD", 
+          url: "https://online-hitfm.tavrmedia.ua/HitFM", 
           country: "ua",
           description: "Сучасні хіти"
         },
         { 
-          title: "Львівська Хвиля", 
-          url: "https://lviv.lw.ua/radio/8000/radio2.mp3", 
-          country: "ua",
-          description: "Львівське обласне радіо"
-        },
-        { 
           title: "Наше Радіо", 
-          url: "https://nrcu.cdnvideo.ru/nrcu/playlist.m3u8", 
+          url: "https://stream.radioreklama.bg/nasheradio128", 
           country: "ua",
           description: "Патріотичне радіо України"
-        },
-        { 
-          title: "Радіо БАЙРАКТАР", 
-          url: "https://radio.bayraktar.ua/radio/8000/radio.mp3", 
-          country: "ua",
-          description: "Музика для перемоги"
         },
         { 
           title: "KISS FM Україна", 
@@ -386,9 +428,15 @@
         },
         { 
           title: "Радіо Релакс", 
-          url: "https://radio.relax.ua/radio/8000/radio.mp3", 
+          url: "https://radio.relax.ua/radio", 
           country: "ua",
           description: "Розслабляюча музика"
+        },
+        { 
+          title: "Радіо БАЙРАКТАР", 
+          url: "https://radio.bayraktar.ua/radio", 
+          country: "ua",
+          description: "Музика для перемоги"
         }
       ],
       european: [
@@ -405,28 +453,10 @@
           description: "Французька інформаційна станція"
         },
         { 
-          title: "Radio France Internationale", 
-          url: "https://rfienespagnol.ice.infomaniak.ch/rfienespagnol-128.mp3", 
-          country: "fr",
-          description: "Міжнародне французьке радіо"
-        },
-        { 
           title: "Deutschlandfunk", 
           url: "https://st01.sslstream.dlf.de/dlf/01/128/mp3/stream.mp3", 
           country: "de",
           description: "Німецька інформаційна станція"
-        },
-        { 
-          title: "Rai Radio 1", 
-          url: "https://icestreaming.rai.it/1.mp3", 
-          country: "it",
-          description: "Італійська радіостанція"
-        },
-        { 
-          title: "Radio Nacional de España", 
-          url: "https://crtve-ice-edge-2001-fra-eco-cdn.cast.addradio.de/crtve/rne/1/mp3/128/stream.mp3", 
-          country: "es",
-          description: "Національне радіо Іспанії"
         },
         { 
           title: "Polskie Radio", 
@@ -435,22 +465,10 @@
           description: "Польське національне радіо"
         },
         { 
-          title: "Radio Prague International", 
-          url: "https://live.radio.cz:8000/cro1.mp3", 
-          country: "cz",
-          description: "Чеське міжнародне радіо"
-        },
-        { 
-          title: "Sveriges Radio P1", 
-          url: "https://sverigesradio.se/topsy/direkt/132-hi-aac.pls", 
-          country: "se",
-          description: "Шведське національне радіо"
-        },
-        { 
-          title: "NRK P1", 
-          url: "https://nrk-p1-osl.akamaized.net/0/nrk_p1_osl_mp3_h", 
-          country: "no",
-          description: "Норвезьке національне радіо"
+          title: "Radio France Internationale", 
+          url: "https://rfienespagnol.ice.infomaniak.ch/rfienespagnol-128.mp3", 
+          country: "fr",
+          description: "Міжнародне французьке радіо"
         }
       ]
     };
@@ -464,6 +482,8 @@
     const tabs = document.querySelectorAll(".tab");
     const stationName = document.querySelector(".station-name");
     const stationCountry = document.querySelector(".station-country");
+    const errorMessage = document.getElementById("errorMessage");
+    const loading = document.getElementById("loading");
     
     let currentStation = null;
     let currentTab = "ukrainian";
@@ -479,11 +499,14 @@
         const div = document.createElement("div");
         div.className = "playlist-item";
         
-        // Додаємо прапор країни
+        // Додаємо прапор країни з fallback
         const flag = document.createElement("img");
         flag.className = "station-flag";
-        flag.src = `https://flagcdn.com/24x18/${station.country}.png`;
+        flag.src = `https://flagcdn.com/w40/${station.country}.png`;
         flag.alt = station.country;
+        flag.onerror = function() {
+          this.src = "data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='24' height='16' viewBox='0 0 24 16'%3E%3Crect width='24' height='16' fill='%233498db'/%3E%3C/svg%3E";
+        };
         
         const title = document.createElement("div");
         title.className = "station-title";
@@ -497,43 +520,63 @@
         div.appendChild(playing);
         
         div.addEventListener("click", () => {
-          // Знімаємо активний клас з усіх елементів
-          document.querySelectorAll('.playlist-item').forEach(el => {
-            el.classList.remove('active');
-            el.querySelector('.station-playing').innerHTML = '';
-          });
-          
-          // Додаємо активний клас до поточного елемента
-          div.classList.add('active');
-          playing.innerHTML = '<i class="fas fa-volume-up"></i> Грає зараз';
-          
-          // Оновлюємо інформацію про станцію
-          stationName.textContent = station.title;
-          stationCountry.textContent = station.description;
-          
-          // Змінюємо джерело аудіо
-          audio.src = station.url;
-          currentStation = station;
-          
-          // Запускаємо відтворення
-          audio.play().catch(error => {
-            console.error("Помилка відтворення:", error);
-            playing.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Помилка';
-          });
+          selectStation(station, div, playing);
         });
         
         // Активуємо перший елемент при завантаженні
-        if (index === 0 && currentTab === "ukrainian") {
-          div.classList.add('active');
-          playing.innerHTML = '<i class="fas fa-volume-up"></i> Грає зараз';
-          stationName.textContent = station.title;
-          stationCountry.textContent = station.description;
-          audio.src = station.url;
-          currentStation = station;
+        if (index === 0 && currentTab === "ukrainian" && !currentStation) {
+          setTimeout(() => {
+            selectStation(station, div, playing);
+          }, 100);
         }
         
         playlistContainer.appendChild(div);
       });
+    }
+
+    function selectStation(station, element, playingElement) {
+      // Знімаємо активний клас з усіх елементів
+      document.querySelectorAll('.playlist-item').forEach(el => {
+        el.classList.remove('active');
+        const playing = el.querySelector('.station-playing');
+        if (playing) playing.innerHTML = '';
+      });
+      
+      // Додаємо активний клас до поточного елемента
+      element.classList.add('active');
+      playingElement.innerHTML = '<i class="fas fa-volume-up"></i> Грає зараз';
+      
+      // Оновлюємо інформацію про станцію
+      stationName.textContent = station.title;
+      stationCountry.textContent = station.description;
+      
+      // Показуємо індикатор завантаження
+      loading.style.display = 'block';
+      errorMessage.style.display = 'none';
+      
+      // Активуємо кнопки контролю
+      playBtn.disabled = false;
+      pauseBtn.disabled = false;
+      stopBtn.disabled = false;
+      
+      // Змінюємо джерело аудіо
+      audio.src = station.url;
+      currentStation = station;
+      
+      // Запускаємо відтворення
+      const playPromise = audio.play();
+      
+      if (playPromise !== undefined) {
+        playPromise.catch(error => {
+          console.error("Помилка відтворення:", error);
+          playingElement.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Помилка';
+          errorMessage.textContent = "Не вдалося відтворити станцію. Спробуйте іншу.";
+          errorMessage.style.display = 'block';
+          loading.style.display = 'none';
+        }).then(() => {
+          loading.style.display = 'none';
+        });
+      }
     }
 
     // Обробники подій для кнопок
@@ -542,8 +585,6 @@
         audio.play().catch(error => {
           console.error("Помилка відтворення:", error);
         });
-      } else {
-        alert("Будь ласка, оберіть радіостанцію зі списку");
       }
     });
     
@@ -570,16 +611,45 @@
       });
     });
     
-    // Обробка помилок відтворення
+    // Обробка стану відтворення
+    audio.addEventListener('play', function() {
+      loading.style.display = 'none';
+      errorMessage.style.display = 'none';
+    });
+    
+    audio.addEventListener('waiting', function() {
+      loading.style.display = 'block';
+    });
+    
+    audio.addEventListener('canplay', function() {
+      loading.style.display = 'none';
+    });
+    
     audio.addEventListener('error', function(e) {
       console.error('Помилка завантаження аудіо:', e);
+      loading.style.display = 'none';
+      errorMessage.textContent = "Не вдалося завантажити радіостанцію. Спробуйте іншу.";
+      errorMessage.style.display = 'block';
       document.querySelectorAll('.station-playing').forEach(el => {
-        el.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Помилка завантаження';
+        el.innerHTML = '<i class="fas fa-exclamation-triangle"></i> Помилка';
       });
+    });
+    
+    // Обробка зміни гучності
+    audio.addEventListener('volumechange', function() {
+      volumeSlider.value = audio.volume;
     });
     
     // Ініціалізація
     renderPlaylist();
+    
+    // Фокус на першому елементі для доступності
+    setTimeout(() => {
+      const firstStation = document.querySelector('.playlist-item');
+      if (firstStation) {
+        firstStation.focus();
+      }
+    }, 500);
   </script>
 </body>
 </html>
